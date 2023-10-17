@@ -1,100 +1,82 @@
 import 'package:flutter/material.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 void main() {
-  runApp(MyApp());
+  runApp(const MyApp());
 }
 
+// add this in androidManifest.xml(after line 5)
+        // <meta-data android:name="com.google.android.geo.API_KEY"
+        //     android:value="AIzaSyDqIKgp0PFBw8Yp-SlXh1_8YABQ4Jd3Km"/>
+
 class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
+  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: GestureDemo(),
+      title: 'Flutter Demo',
+      theme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        useMaterial3: true,
+      ),
+      home: const MyHomePage(title: 'Flutter Demo Home Page'),
     );
   }
 }
 
-class GestureDemo extends StatefulWidget {
+class MyHomePage extends StatefulWidget {
+  const MyHomePage({super.key, required this.title});
+
+  final String title;
+
   @override
-  _GestureDemoState createState() => _GestureDemoState();
+  State<MyHomePage> createState() => _MyHomePageState();
 }
 
-class _GestureDemoState extends State<GestureDemo> {
-  String _gestureMessage = "No gesture detected";
+class _MyHomePageState extends State<MyHomePage> {
+  late GoogleMapController _mapController;
+
+  _handleTap(LatLng point) {
+    _mapController.animateCamera(
+      CameraUpdate.newCameraPosition(
+        CameraPosition(target: point, zoom: 2),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Gesture Detector Example"),
+        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        title: Text(widget.title),
       ),
       body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            GestureDetector(
-              onTap: () {
-                setState(() {
-                  _gestureMessage = "Tap gesture detected";
-
-                   _showDialog(context,_gestureMessage);
-
-                });
-              },
-              onDoubleTap: () {
-                setState(() {
-                  _gestureMessage = "Double tap gesture detected";
-                   _showDialog(context,_gestureMessage);
-                });
-              },
-              onLongPress: () {
-                setState(() {
-                  _gestureMessage = "Long press gesture detected";
-                   _showDialog(context,_gestureMessage);
-                });
-
-              },
-              
-              child: Container(
-                padding: EdgeInsets.all(20),
-                color: Colors.blue,
-                child: Text(
-                  "CLICK ME HERE!!",
-                  style: TextStyle(color: Colors.white),
-                ),
-              ),
-            ),
-            SizedBox(height: 20),
-            Text(
-              _gestureMessage,
-              style: TextStyle(fontSize: 16),
-            ),
-          ],
+        child: GoogleMap(
+          onTap: (argument) {
+            _handleTap(argument);
+          },
+          myLocationEnabled: true,
+          myLocationButtonEnabled: true,
+          onMapCreated: (controller) {
+            _mapController = controller;
+          },
+          initialCameraPosition: const CameraPosition(
+            target: LatLng(37.4279, -122.0888),
+            zoom: 12,
+          ),
+          markers: {
+            const Marker(
+              markerId: MarkerId("My-Marker"),
+              icon: BitmapDescriptor.defaultMarker,
+              position: LatLng(37.4279, -122.0888),
+              infoWindow: InfoWindow(title: "My Marker"),
+            )
+          },
         ),
       ),
     );
   }
 }
-
-
-
-
-
-  void _showDialog(BuildContext context, String message) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Gesture Detected'),
-          content: Text(message),
-          actions: <Widget>[
-            TextButton(
-              child: Text('Close'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
